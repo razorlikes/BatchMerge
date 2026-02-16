@@ -18,7 +18,7 @@ namespace BatchMerge
             fbdDest.ShowDialog();
             var path = fbdDest.SelectedPath;
             tbxPathDest.Text = path;
-            var files = Directory.GetFiles(path, ".mkv", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(path, "*.mkv", SearchOption.AllDirectories);
             lstFilesDest.Items.Clear();
             lstFilesDest.Items.AddRange(files.Select(f => new ListViewItem(Path.GetFileName(f))).ToArray());
 
@@ -48,7 +48,7 @@ namespace BatchMerge
             fbdSrc.ShowDialog();
             var path = fbdSrc.SelectedPath;
             tbxPathSrc.Text = path;
-            var files = Directory.GetFiles(path, "*S**E**.mkv", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(path, "*.mkv", SearchOption.AllDirectories);
             lstFilesSrc.Items.Clear();
             lstFilesSrc.Items.AddRange(files.Select(f => new ListViewItem(Path.GetFileName(f))).ToArray());
 
