@@ -144,6 +144,19 @@ namespace BatchMerge
 
                 await mergeProcess.WaitForExitAsync();
 
+                if (cbxReplaceFile.Checked)
+                {
+                    try
+                    {
+                        File.Delete(filesDest[i]);
+                        File.Move($"{filesDest[i].Remove(filesDest[i].LastIndexOf("."))}-merged.mkv", filesDest[i]);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error replacing file {filesDest[i]}:\n {ex.Message}");
+                    }
+                }
+
                 pbrTotalProgress.Value = i + 1;
             }
 
