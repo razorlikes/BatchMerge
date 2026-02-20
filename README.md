@@ -31,4 +31,5 @@
 + The mkvmerge.exe must be placed in the **same folder** as BatchMerge or accessible in your system PATH
 
 # Screenshot
-<img alt="image" src="https://github.com/user-attachments/assets/e2d471bd-cafb-473e-8745-189454736bd8" />
+<img width="821" height="813" alt="image" src="https://github.com/user-attachments/assets/00635218-a59b-45e6-9931-72a4f527cbcb" />
+
