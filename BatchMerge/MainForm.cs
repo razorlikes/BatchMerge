@@ -4,7 +4,7 @@ namespace BatchMerge
 {
     public partial class MainForm : Form
     {
-        string[] files1, files2;
+        string[] filesDest, filesSrc;
         Process mergeProcess;
         bool running = false;
 
@@ -13,42 +13,25 @@ namespace BatchMerge
             InitializeComponent();
         }
 
-        private void btnOpenFolderDest_Click(object sender, EventArgs e)
-        {
-            fbdDest.ShowDialog();
-            var path = fbdDest.SelectedPath;
-            tbxPathDest.Text = path;
-            var files = Directory.GetFiles(path, "*.mkv", SearchOption.AllDirectories);
-            lstFilesDest.Items.Clear();
-            lstFilesDest.Items.AddRange(files.Select(f => new ListViewItem(Path.GetFileName(f))).ToArray());
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = "mkvmerge.exe",
-                Arguments = $"-J \"{files[0]}\"",
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            using (var process = Process.Start(psi))
-            {
-                if (process != null)
-                {
-                    string output = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit();
-                    tbxInfoDest.Text = output;
-                }
-            }
-
-            files1 = files;
-        }
-
         private void btnOpenFolderSrc_Click(object sender, EventArgs e)
         {
             fbdSrc.ShowDialog();
             var path = fbdSrc.SelectedPath;
+            string[] files;
+
+            try
+            {
+                files = Directory.GetFiles(path, "*.mkv", SearchOption.AllDirectories);
+                if (files.Length == 0)
+                    throw new Exception("No MKV files found in the selected folder.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+                return;
+            }
+
             tbxPathSrc.Text = path;
-            var files = Directory.GetFiles(path, "*.mkv", SearchOption.AllDirectories);
             lstFilesSrc.Items.Clear();
             lstFilesSrc.Items.AddRange(files.Select(f => new ListViewItem(Path.GetFileName(f))).ToArray());
 
@@ -70,7 +53,50 @@ namespace BatchMerge
                 }
             }
 
-            files2 = files;
+            filesSrc = files;
+        }
+
+        private void btnOpenFolderDest_Click(object sender, EventArgs e)
+        {
+            fbdDest.ShowDialog();
+            var path = fbdDest.SelectedPath;
+            string[] files;
+
+            try
+            {
+                files = Directory.GetFiles(path, "*.mkv", SearchOption.AllDirectories);
+                if (files.Length == 0)
+                    throw new Exception("No MKV files found in the selected folder.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+                return;
+            }
+
+            tbxPathDest.Text = path;
+            lstFilesDest.Items.Clear();
+            lstFilesDest.Items.AddRange(files.Select(f => new ListViewItem(Path.GetFileName(f))).ToArray());
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "mkvmerge.exe",
+                Arguments = $"-J \"{files[0]}\"",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using (var process = Process.Start(psi))
+            {
+                if (process != null)
+                {
+                    string output = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit();
+                    tbxInfoDest.Text = output;
+                }
+            }
+
+            filesDest = files;
         }
 
         private async void btnStartMerge_Click(object sender, EventArgs e)
@@ -78,9 +104,9 @@ namespace BatchMerge
             running = true;
             btnStartMerge.Enabled = false;
             btnCancelMerge.Enabled = true;
-            pbrTotalProgress.Maximum = files1.Length;
+            pbrTotalProgress.Maximum = filesDest.Length;
 
-            for (int i = 0; i < files1.Length; i++)
+            for (int i = 0; i < filesDest.Length; i++)
             {
                 if (running == false)
                     break;
@@ -89,13 +115,13 @@ namespace BatchMerge
                 {
                     FileName = "mkvmerge.exe",
                     Arguments =
-                        $"-o \"{files1[i].Remove(files1[i].LastIndexOf("."))}-merged.mkv\" " +
-                        $"\"{files1[i]}\" " +
+                        $"-o \"{filesDest[i].Remove(filesDest[i].LastIndexOf("."))}-merged.mkv\" " +
+                        $"\"{filesDest[i]}\" " +
                         $"--no-video --no-subtitles --no-buttons --no-track-tags --no-chapters --no-attachments " +
                         $"--audio-tracks {numTrackID.Value} " +
                         $"--default-track {numTrackID.Value}:{(cbxTrackDefault.Checked ? "yes" : "no")} " +
                         $"--forced-track {numTrackID.Value}:{(cbxTrackForced.Checked ? "yes" : "no")} " +
-                        $"\"{files2[i]}\"",
+                        $"\"{filesSrc[i]}\"",
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
